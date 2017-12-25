@@ -112,18 +112,25 @@ global_logger(prev_logger)
 # BEGIN 0.7 deprecations
 
 @testset "parser syntax deprecations" begin
+    # Test empty logs for meta.parse depwarn argument.
+    @test_logs Meta.parse("1.+2", depwarn=false)
+
     # #19089
     @test (@test_deprecated Meta.parse("1.+2")) == :(1 .+ 2)
+
     # #16356
     @test (@test_deprecated Meta.parse("0xapi")) == :(0xa * pi)
+
     # #22523 #22712
     @test (@test_deprecated Meta.parse("a?b:c"))    == :(a ? b : c)
     @test (@test_deprecated Meta.parse("a ?b:c"))   == :(a ? b : c)
     @test (@test_deprecated Meta.parse("a ? b:c"))  == :(a ? b : c)
     @test (@test_deprecated Meta.parse("a ? b :c")) == :(a ? b : c)
     @test (@test_deprecated Meta.parse("?")) == Symbol("?")
+
     # #13079
     @test (@test_deprecated Meta.parse("1<<2*3")) == :(1<<(2*3))
+
     # ([#19157], [#20418]).
     @test remove_linenums!(@test_deprecated Meta.parse("immutable A; end")) ==
           remove_linenums!(:(struct A; end))
@@ -131,8 +138,10 @@ global_logger(prev_logger)
           remove_linenums!(:(mutable struct A; end))
     @test (@test_deprecated Meta.parse("abstract A")) == :(abstract type A end)
     @test (@test_deprecated Meta.parse("bitstype 32 A")) == :(primitive type A 32 end)
+
     # #20500
     @test (@test_deprecated Meta.parse("typealias A B")) == Expr(:typealias, :A, :B)
+
     # #19987
     @test remove_linenums!(@test_deprecated Meta.parse("try ; catch f() ; end")) ==
           remove_linenums!(:(try ; catch; f() ; end))
